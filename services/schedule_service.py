@@ -65,3 +65,17 @@ def clear_schedule():
     session.commit()
 
     session.close()
+
+    
+def get_schedule_by_teacher(teacher):
+    session = SessionLocal()
+
+    lessons = (
+        session.query(Schedule)
+        .filter(Schedule.teacher.contains(teacher))
+        .all()
+    )
+
+    session.close()
+
+    return lessons

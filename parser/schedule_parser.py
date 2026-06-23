@@ -43,73 +43,54 @@ def get_month_dates(
 def get_lessons_for_day(day_url):
 
     response = requests.get(day_url)
-
-    soup = BeautifulSoup(
-        response.text,
-        "html.parser"
-    )
+    soup = BeautifulSoup(response.text, "html.parser")
 
     lessons = []
+    seen = set()
 
-    schedule_items = soup.find_all(
-        "div",
-        class_="sch-list-item"
-    )
+    schedule_items = soup.find_all("div", class_="sch-list-item")
 
     for item in schedule_items:
 
-        time_block = item.find(
-            "div",
-            class_="sch-list-item-time-inner"
-        )
+        time_block = item.find("div", class_="sch-list-item-time-inner")
+        lesson_time = time_block.text.strip() if time_block else ""
 
-        lesson_cards = item.find_all(
-            "div",
-            class_="schcls-item schcls-card"
-        )
+        # ⚠️ ВАЖНО: берём ТОЛЬКО уникальные предметы внутри времени
+        subjects_seen = set()
 
-        lesson_time = ""
-
-        if time_block:
-            lesson_time = time_block.text.strip()
+        lesson_cards = item.find_all("div", class_="schcls-item schcls-card")
 
         for card in lesson_cards:
 
-            subject = ""
-            teacher = ""
-            room = ""
+            subject_block = card.find("div", class_="schcls-item-name")
+            teacher_block = card.find("div", class_="schcls-item-prepod")
+            room_block = card.find("div", class_="schcls-item-aud")
 
-            subject_block = card.find(
-                "div",
-                class_="schcls-item-name"
-            )
+            subject = subject_block.text.strip() if subject_block else ""
+            teacher = teacher_block.text.strip() if teacher_block else ""
+            room = room_block.text.strip() if room_block else ""
 
-            if subject_block:
-                subject = subject_block.text.strip()
+            if not subject:
+                continue
 
-            teacher_block = card.find(
-                "div",
-                class_="schcls-item-prepod"
-            )
+            # 🔥 ФИЛЬТР ПО ПРЕДМЕТУ ВНУТРИ ОДНОГО ВРЕМЕНИ
+            if subject in subjects_seen:
+                continue
 
-            if teacher_block:
-                teacher = teacher_block.text.strip()
+            subjects_seen.add(subject)
 
-            room_block = card.find(
-                "div",
-                class_="schcls-item-aud"
-            )
+            key = (lesson_time, subject)
 
-            if room_block:
-                room = room_block.text.strip()
+            if key in seen:
+                continue
 
-            lessons.append(
-                {
-                    "time": lesson_time,
-                    "subject": subject,
-                    "teacher": teacher,
-                    "room": room
-                }
-            )
+            seen.add(key)
+
+            lessons.append({
+                "time": lesson_time,
+                "subject": subject,
+                "teacher": teacher,
+                "room": room
+            })
 
     return lessons
