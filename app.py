@@ -1,13 +1,16 @@
-from services.schedule_service import get_schedule_by_group
+import sys
+from pathlib import Path
 
-lessons = get_schedule_by_group("АСУб-25-1")
+sys.path.append(str(Path(__file__).resolve().parent))
 
-print("Найдено записей:", len(lessons))
+from parser.updater import run_auto_update
+from bot.vk_bot import run_bot
 
-for lesson in lessons[:5]:
-    print(
-        lesson.subject,
-        lesson.teacher,
-        lesson.time_start,
-        lesson.room
-    )
+if __name__ == "__main__":
+    print("=== Запуск Schedule Assistant ===")
+
+    # Запускаем обновление расписания в фоне — бот стартует сразу не ожидая
+    run_auto_update()
+
+    # Запускаем VK бота
+    run_bot()

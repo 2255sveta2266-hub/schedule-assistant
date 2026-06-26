@@ -11,6 +11,8 @@ class User(Base):
     id = Column(Integer, primary_key=True)
     user_id = Column(String, unique=True, nullable=False)
     name = Column(String)
+    group_name = Column(String, default="")   # запомненная группа пользователя
+    state = Column(String, default="")        # состояние диалога (waiting_for_group / "")
     created_at = Column(DateTime, default=datetime.utcnow)
 
 
@@ -35,3 +37,5 @@ class Schedule(Base):
     time_start = Column(String)
     time_end = Column(String)
     room = Column(String)
+    subgroup = Column(String, default="")
+    lesson_type = Column(String, default="")   # лекция / практика / лабораторная / ...
